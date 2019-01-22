@@ -35,6 +35,7 @@
 #ifndef ROS_NODE_HANDLE_H_
 #define ROS_NODE_HANDLE_H_
 
+#include <protos.h>
 #include <stdint.h>
 
 #include "std_msgs/Time.h"
@@ -322,6 +323,7 @@ public:
           {
             requestSyncTime();
             negotiateTopics();
+
             last_sync_time = c_time;
             last_sync_receive_time = c_time;
             return SPIN_ERR;
@@ -652,6 +654,24 @@ public:
         //copy it over
         for (int i = 0; i < length; i++)
           strcpy(param[i], req_param_resp.strings[i]);
+        return true;
+      }
+      else
+      {
+        logwarn("Failed to get param: length mismatch");
+      }
+    }
+    return false;
+  }
+  bool getParam(const char* name, bool* param, int length = 1, int timeout = 1000)
+  {
+    if (requestParam(name, timeout))
+    {
+      if (length == req_param_resp.ints_length)
+      {
+        //copy it over
+        for (int i = 0; i < length; i++)
+          param[i] = req_param_resp.ints[i];
         return true;
       }
       else

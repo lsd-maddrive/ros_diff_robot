@@ -11,11 +11,15 @@ extern "C" {
 
 #include <ch.h>
 #include <hal.h>
+#include <chprintf.h>
+// #define dprintf(str) {chprintf(dstr, str); chThdSleepMilliseconds(100); }
+#define dprintf(str)
 
 /*
  * Configuration
  */
 
+extern BaseSequentialStream    *dstr;
 
 #define PWM_LIMITED_CONTROL
 
@@ -50,10 +54,7 @@ extern "C" {
  * Prototypes
  */
 
-void init_rangefinders_processor ( tprio_t prio );
-
-void ros_driver_start( tprio_t prio );
-void ros_driver_init( void );
+void ros_driver_init( tprio_t prio );
 void ros_driver_send_rangefinders( uint16_t *data, uint32_t data_size );
 void ros_driver_send_odometry( int32_t counter );
 void ros_driver_set_control_cb( void (*cb_func)(uint16_t speed, uint16_t steer) );

@@ -37,6 +37,7 @@ class ChibiOSHardware {
         {
             /* TODO --- this function may be critical as uses floats */
             /* replaces ST2MS as it overflows on (2^32 / 1000) */
+            /* dont forget to enable hardware FPU */
             return ceilf(chVTGetSystemTimeX() * st2ms);
             // return ST2MS(chVTGetSystemTimeX());
         }

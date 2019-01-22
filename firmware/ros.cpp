@@ -24,6 +24,8 @@ BaseChannel     *ros_sd_ptr = (BaseChannel *)ros_sd;
 #include <std_msgs/UInt16MultiArray.h>
 #include <std_msgs/UInt8.h>
 
+#include <chprintf.h>
+
 void (*g_cb_func)(uint16_t speed, uint16_t steer) = NULL;
 
 // Example callback
@@ -37,12 +39,12 @@ void topic_cb( const std_msgs::UInt16MultiArray &msg )
         g_cb_func( msg.data[0], msg.data[1] );
     }
 
-    palToggleLine( LINE_LED1 );
+    // palToggleLine( LINE_LED1 );
 }
 
 void led_cb( const std_msgs::UInt8 &msg )
 {
-    palToggleLine( LINE_LED1 );
+    palToggleLine( LINE_LED3 );
 }
 
 ros::NodeHandle                                 ros_node;
@@ -70,8 +72,7 @@ static THD_FUNCTION(Spinner, arg)
     while (true)
     {
         ros_node.spinOnce();
-        //
-        chThdSleepMilliseconds( 10 );
+        chThdSleepMilliseconds( 1000 );
     }
 }
 
@@ -104,12 +105,7 @@ void ros_driver_send_odometry( int32_t counter )
     topic_odom.publish(&i32_odom_msg);
 }
 
-void ros_driver_start( tprio_t prio )
-{
-    chThdCreateStatic(waSpinner, sizeof(waSpinner), prio, Spinner, NULL);
-}
-
-void ros_driver_init( void )
+void ros_driver_init( tprio_t prio )
 {
     /* Serial driver */
     sdStart( ros_sd, &sdcfg );
@@ -118,14 +114,16 @@ void ros_driver_init( void )
 
     /* ROS setup */
     ros_node.initNode();
-    ros_node.setSpinTimeout( 20 );
+    ros_node.setSpinTimeout( 2000 );
 
     /* ROS publishers */
 //    ros_node.advertise(topic_ranges);
-    ros_node.advertise(topic_odom);
-    ros_node.advertise(topic_mode);
+    // ros_node.advertise(topic_odom);
+    // ros_node.advertise(topic_mode);
 
     /* ROS subscribers */
     ros_node.subscribe(topic_led);
-    ros_node.subscribe(topic_control);
+    // ros_node.subscribe(topic_control);
+
+    chThdCreateStatic(waSpinner, sizeof(waSpinner), prio, Spinner, NULL);
 }
