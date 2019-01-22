@@ -23,8 +23,9 @@ BaseChannel     *ros_sd_ptr = (BaseChannel *)ros_sd;
 #include <std_msgs/Int32.h>
 #include <std_msgs/UInt16MultiArray.h>
 #include <std_msgs/UInt8.h>
+#include <std_msgs/Int8.h>
 
-#include <chprintf.h>
+#include <protos.h>
 
 void (*g_cb_func)(uint16_t speed, uint16_t steer) = NULL;
 
@@ -42,8 +43,11 @@ void topic_cb( const std_msgs::UInt16MultiArray &msg )
     // palToggleLine( LINE_LED1 );
 }
 
-void led_cb( const std_msgs::UInt8 &msg )
-{
+void motors_cb( const std_msgs::Int8 &msg )
+{   
+    motors_set_left_power( msg.data );
+    motors_set_right_power( msg.data );
+
     palToggleLine( LINE_LED3 );
 }
 
@@ -56,7 +60,7 @@ std_msgs::UInt8                                 u8_mode_msg;
 ros::Publisher                                  topic_odom("odom_raw", &i32_odom_msg);
 ros::Publisher                                  topic_ranges("ranges_raw", &u16_arr_msg);
 ros::Publisher                                  topic_mode("mode", &u8_mode_msg);
-ros::Subscriber<std_msgs::UInt8>                topic_led("led", &led_cb);
+ros::Subscriber<std_msgs::Int8>                 topic_motors("motors", &motors_cb);
 ros::Subscriber<std_msgs::UInt16MultiArray>     topic_control("control_raw", &topic_cb);
 
 /*
@@ -122,7 +126,7 @@ void ros_driver_init( tprio_t prio )
     // ros_node.advertise(topic_mode);
 
     /* ROS subscribers */
-    ros_node.subscribe(topic_led);
+    ros_node.subscribe(topic_motors);
     // ros_node.subscribe(topic_control);
 
     chThdCreateStatic(waSpinner, sizeof(waSpinner), prio, Spinner, NULL);

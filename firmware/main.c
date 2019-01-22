@@ -33,12 +33,13 @@ int main(void)
     /* HAL (Hardware Abstraction Layer) initialization */
     halInit();
 
-    sdStart( debug_sd, &sdcfg );
-    palSetPadMode( GPIOC, 10, PAL_MODE_ALTERNATE(8) );      // TX
-    palSetPadMode( GPIOC, 11, PAL_MODE_ALTERNATE(8) );       // RX
-    dstr = (BaseSequentialStream *)debug_sd;
+    // sdStart( debug_sd, &sdcfg );
+    // palSetPadMode( GPIOC, 10, PAL_MODE_ALTERNATE(8) );      // TX
+    // palSetPadMode( GPIOC, 11, PAL_MODE_ALTERNATE(8) );       // RX
+    // dstr = (BaseSequentialStream *)debug_sd;
 
     ros_driver_init( NORMALPRIO - 1 );
+    motors_init();
 
     chThdCreateStatic(waThread, sizeof(waThread), NORMALPRIO, Thread, NULL /* arg is NULL */);
 
