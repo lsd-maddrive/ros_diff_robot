@@ -40,12 +40,18 @@ int main(void)
 
     ros_driver_init( NORMALPRIO - 1 );
     motors_init();
+    encoders_init();
 
     chThdCreateStatic(waThread, sizeof(waThread), NORMALPRIO, Thread, NULL /* arg is NULL */);
 
     while (true)
     {
+        int32_t enc_left = encoders_get_left_value();
+        int32_t enc_right = encoders_get_right_value();
+
+        ros_driver_send_odometry( enc_left, enc_right );
+
+        chThdSleepMilliseconds( 200 );
         palToggleLine( LINE_LED1 );
-        chThdSleepSeconds(1);
     }
 }

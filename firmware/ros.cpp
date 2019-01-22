@@ -43,24 +43,31 @@ void topic_cb( const std_msgs::UInt16MultiArray &msg )
     // palToggleLine( LINE_LED1 );
 }
 
-void motors_cb( const std_msgs::Int8 &msg )
+void motor_right_cb( const std_msgs::Int8 &msg )
+{   
+    motors_set_right_power( msg.data );
+}
+
+void motor_left_cb( const std_msgs::Int8 &msg )
 {   
     motors_set_left_power( msg.data );
-    motors_set_right_power( msg.data );
-
-    palToggleLine( LINE_LED3 );
 }
 
 ros::NodeHandle                                 ros_node;
 
 std_msgs::UInt16MultiArray                      u16_arr_msg;
-std_msgs::Int32                                 i32_odom_msg;
+std_msgs::Int32                                 i32_enc_left_msg;
+std_msgs::Int32                                 i32_enc_right_msg;
 std_msgs::UInt8                                 u8_mode_msg;
 
-ros::Publisher                                  topic_odom("odom_raw", &i32_odom_msg);
+ros::Publisher                                  topic_encoder_left("encoder_left", &i32_enc_left_msg);
+ros::Publisher                                  topic_encoder_right("encoder_right", &i32_enc_right_msg);
 ros::Publisher                                  topic_ranges("ranges_raw", &u16_arr_msg);
 ros::Publisher                                  topic_mode("mode", &u8_mode_msg);
-ros::Subscriber<std_msgs::Int8>                 topic_motors("motors", &motors_cb);
+
+ros::Subscriber<std_msgs::Int8>                 topic_motor_left("motor_left", &motor_left_cb);
+ros::Subscriber<std_msgs::Int8>                 topic_motor_right("motor_right", &motor_right_cb);
+
 ros::Subscriber<std_msgs::UInt16MultiArray>     topic_control("control_raw", &topic_cb);
 
 /*
@@ -76,7 +83,7 @@ static THD_FUNCTION(Spinner, arg)
     while (true)
     {
         ros_node.spinOnce();
-        chThdSleepMilliseconds( 1000 );
+        chThdSleepMilliseconds( 20 );
     }
 }
 
@@ -102,11 +109,13 @@ void ros_driver_send_mode( uint8_t m_mode )
     topic_mode.publish(&u8_mode_msg);
 }
 
-void ros_driver_send_odometry( int32_t counter )
+void ros_driver_send_odometry( int32_t left, int32_t right )
 {
-    i32_odom_msg.data         = counter;
+    i32_enc_right_msg.data         = right;
+    i32_enc_left_msg.data          = left;
 
-    topic_odom.publish(&i32_odom_msg);
+    topic_encoder_right.publish(&i32_enc_right_msg);
+    topic_encoder_left.publish(&i32_enc_left_msg);
 }
 
 void ros_driver_init( tprio_t prio )
@@ -118,15 +127,17 @@ void ros_driver_init( tprio_t prio )
 
     /* ROS setup */
     ros_node.initNode();
-    ros_node.setSpinTimeout( 2000 );
+    ros_node.setSpinTimeout( 20 );
 
     /* ROS publishers */
 //    ros_node.advertise(topic_ranges);
-    // ros_node.advertise(topic_odom);
+    ros_node.advertise(topic_encoder_right);
+    ros_node.advertise(topic_encoder_left);
     // ros_node.advertise(topic_mode);
 
     /* ROS subscribers */
-    ros_node.subscribe(topic_motors);
+    ros_node.subscribe(topic_motor_left);
+    ros_node.subscribe(topic_motor_right);
     // ros_node.subscribe(topic_control);
 
     chThdCreateStatic(waSpinner, sizeof(waSpinner), prio, Spinner, NULL);

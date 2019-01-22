@@ -56,7 +56,7 @@ extern BaseSequentialStream    *dstr;
 
 void ros_driver_init( tprio_t prio );
 void ros_driver_send_rangefinders( uint16_t *data, uint32_t data_size );
-void ros_driver_send_odometry( int32_t counter );
+void ros_driver_send_odometry( int32_t left, int32_t right );
 void ros_driver_set_control_cb( void (*cb_func)(uint16_t speed, uint16_t steer) );
 void ros_driver_send_mode( uint8_t m_mode );
 
@@ -71,6 +71,10 @@ void motors_set_right_power( int power );
 /*
  * Encoders
  */
+
+void encoders_init( void );
+int32_t encoders_get_left_value( void );
+int32_t encoders_get_right_value( void );
 
 #ifdef __cplusplus
 }
