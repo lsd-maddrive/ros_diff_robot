@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<!-- ros-kinetic-rosserial-msgs required!! -->
+
+<!-- https://answers.ros.org/question/41446/a-is-not-in-your-ssh-known_hosts-file/?answer=42629#post-id-42629 -->
+
+<launch>
+	<!-- <machine name="rpi" user="ubuntu" address="192.168.31.93" /> -->
+
+    <group ns="quadro">
+
+        <node pkg="rosserial_python" type="serial_node.py" name="quadro_node" output="screen" respawn="true">
+            <!-- <param name="port" value="/dev/serial/by-path/pci-0000:00:14.0-usb-0:10:1.0-port0" />  -->
+            <param name="port" value="/dev/ttyAMA0" /> 
+            <param name="baud" value="115200" /> 
+        </node> 
+    </group>
+</launch>
