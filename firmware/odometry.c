@@ -35,8 +35,11 @@ odometry_pose_t *odometry_get_pose( void )
 	float passed_path_right = (enc_left_ticks - enc_left_cache) * meters_per_tick;
 	float passed_path_left = (enc_right_ticks - enc_right_cache) * meters_per_tick;
 
-	float full_path = (passed_path_right - passed_path_left) / 2;
-	pose.dir = pose.dir + (passed_path_right - passed_path_left) / wheeltrack;
+	enc_right_cache = enc_right_ticks;
+	enc_left_cache = enc_left_ticks;	
+
+	float full_path = (passed_path_right + passed_path_left) / 2;
+	pose.dir = pose.dir + (passed_path_left - passed_path_right) / wheeltrack;
 	pose.x = pose.x + full_path * cos( pose.dir );
 	pose.y = pose.y + full_path * sin( pose.dir );
 

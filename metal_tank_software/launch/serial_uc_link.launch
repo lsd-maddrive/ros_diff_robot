@@ -15,5 +15,8 @@
             <param name="port" value="$(arg device)" /> 
             <param name="baud" value="115200" /> 
         </node> 
+
+        <node pkg="metal_tank_software" type="odometry_pub.py" name="odometry_node" output="screen" respawn="false">
+        </node>    
     </group>
 </launch>

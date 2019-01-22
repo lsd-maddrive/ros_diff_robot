@@ -26,9 +26,32 @@ BaseChannel     *ros_sd_ptr = (BaseChannel *)ros_sd;
 #include <std_msgs/Int8.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Bool.h>
-#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Point32.h>
+#include <geometry_msgs/Twist.h>
 
 #include <protos.h>
+
+void cmd_vel_cb( const geometry_msgs::Twist &msg )
+{
+    float lin = msg.linear.x;
+    float rot = msg.angular.z;
+
+    if ( lin )
+    {
+        motors_set_right_power( 50 * lin );
+        motors_set_left_power( 50 * lin );
+    }
+    else if ( rot )
+    {
+        motors_set_right_power( 50 * rot );
+        motors_set_left_power( -50 * rot );
+    }
+    else
+    {
+        motors_set_right_power( 0 );
+        motors_set_left_power( 0 );
+    }
+}
 
 void motor_right_cb( const std_msgs::Int8 &msg )
 {   
@@ -53,7 +76,7 @@ std_msgs::Int32                                 i32_enc_right_msg;
 std_msgs::Float32                               f32_encspeed_left_msg;
 std_msgs::Float32                               f32_encspeed_right_msg;
 
-geometry_msgs::Pose                             odometry_pose;
+geometry_msgs::Point32                          odometry_pose;
 
 ros::Publisher                                  topic_encoder_left("encoder_left", &i32_enc_left_msg);
 ros::Publisher                                  topic_encoder_right("encoder_right", &i32_enc_right_msg);
@@ -65,6 +88,7 @@ ros::Publisher                                  topic_pose("odom_pose", &odometr
 ros::Subscriber<std_msgs::Int8>                 topic_motor_left("motor_left", &motor_left_cb);
 ros::Subscriber<std_msgs::Int8>                 topic_motor_right("motor_right", &motor_right_cb);
 ros::Subscriber<std_msgs::UInt8>                topic_task_trigger("set_task", &trigger_task_cb);
+ros::Subscriber<geometry_msgs::Twist>           topic_cmd("cmd_vel", &cmd_vel_cb);
 
 /*
  * ROS spin thread - used to receive messages
@@ -87,9 +111,9 @@ static THD_FUNCTION(Spinner, arg)
 
 void ros_driver_send_pose( odometry_pose_t *ptr )
 {
-    odometry_pose.position.x = ptr->x;
-    odometry_pose.position.y = ptr->y;
-    odometry_pose.position.z = 0;
+    odometry_pose.x = ptr->x;
+    odometry_pose.y = ptr->y;
+    odometry_pose.z = ptr->dir;
 
     topic_pose.publish(&odometry_pose);
 }
@@ -134,6 +158,7 @@ void ros_driver_init( tprio_t prio )
     ros_node.subscribe(topic_motor_left);
     ros_node.subscribe(topic_motor_right);
     ros_node.subscribe(topic_task_trigger);
+    ros_node.subscribe(topic_cmd);
 
     chThdCreateStatic(waSpinner, sizeof(waSpinner), prio, Spinner, NULL);
 }
