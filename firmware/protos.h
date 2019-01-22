@@ -51,14 +51,27 @@ extern BaseSequentialStream    *dstr;
                                (x) < (min) ? (min) : (x) )
 
 /*
- * Prototypes
+ * Odometry
+ */
+
+typedef struct
+{
+	float x, y, dir;
+} odometry_pose_t;
+
+void odometry_init( void );
+void odometry_reset( void );
+odometry_pose_t *odometry_get_pose( void );
+
+
+/*
+ * ROS
  */
 
 void ros_driver_init( tprio_t prio );
-void ros_driver_send_rangefinders( uint16_t *data, uint32_t data_size );
+void ros_driver_send_odom_speed( int32_t left, int32_t right );
 void ros_driver_send_odometry( int32_t left, int32_t right );
-void ros_driver_set_control_cb( void (*cb_func)(uint16_t speed, uint16_t steer) );
-void ros_driver_send_mode( uint8_t m_mode );
+void ros_driver_send_pose( odometry_pose_t *ptr );
 
 /*
  * Motors
@@ -73,8 +86,11 @@ void motors_set_right_power( int power );
  */
 
 void encoders_init( void );
+void encoders_reset( void );
 int32_t encoders_get_left_value( void );
 int32_t encoders_get_right_value( void );
+int32_t encoders_get_left_speed( void );
+int32_t encoders_get_right_speed( void );
 
 #ifdef __cplusplus
 }

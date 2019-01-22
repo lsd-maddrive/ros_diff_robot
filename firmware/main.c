@@ -16,16 +16,6 @@ static THD_FUNCTION(Thread, arg)
     }
 }
 
-static SerialConfig sdcfg = {
-      .speed = 115200,
-      .cr1 = 0,
-      .cr2 = USART_CR2_LINEN,
-      .cr3 = 0
-    };
-
-SerialDriver            *debug_sd   = &SD4;
-BaseSequentialStream    *dstr;
-
 int main(void)
 {
     /* RT Core initialization */
@@ -33,25 +23,47 @@ int main(void)
     /* HAL (Hardware Abstraction Layer) initialization */
     halInit();
 
-    // sdStart( debug_sd, &sdcfg );
-    // palSetPadMode( GPIOC, 10, PAL_MODE_ALTERNATE(8) );      // TX
-    // palSetPadMode( GPIOC, 11, PAL_MODE_ALTERNATE(8) );       // RX
-    // dstr = (BaseSequentialStream *)debug_sd;
-
     ros_driver_init( NORMALPRIO - 1 );
     motors_init();
     encoders_init();
+    odometry_init();
 
     chThdCreateStatic(waThread, sizeof(waThread), NORMALPRIO, Thread, NULL /* arg is NULL */);
 
+    systime_t time = chVTGetSystemTimeX();
+
     while (true)
     {
+        time += MS2ST( 20 );
+
         int32_t enc_left = encoders_get_left_value();
         int32_t enc_right = encoders_get_right_value();
 
         ros_driver_send_odometry( enc_left, enc_right );
+        
+        enc_left = encoders_get_left_speed();
+        enc_right = encoders_get_right_speed();        
 
-        chThdSleepMilliseconds( 200 );
-        palToggleLine( LINE_LED1 );
+        ros_driver_send_odom_speed( enc_left, enc_right );
+
+        odometry_pose_t *pose = odometry_get_pose();
+        ros_driver_send_pose( pose );
+
+        chThdSleepUntil(time);
+
+        extern bool task_triggered;
+        if ( task_triggered )
+        {
+            odometry_reset();
+            while ( encoders_get_right_value() < 300 )
+            {
+                motors_set_right_power( 10 );
+                chThdSleepMilliseconds( 10 );
+            }
+
+            motors_set_right_power( 0 );
+            task_triggered = false;
+            time = chVTGetSystemTimeX();
+        }
     }
 }
