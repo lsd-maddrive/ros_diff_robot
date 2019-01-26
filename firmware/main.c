@@ -39,12 +39,12 @@ int main(void)
         int32_t enc_left = encoders_get_left_value();
         int32_t enc_right = encoders_get_right_value();
 
-        ros_driver_send_odometry( enc_left, enc_right );
+        // ros_driver_send_odometry( enc_left, enc_right );
         
         enc_left = encoders_get_left_speed();
         enc_right = encoders_get_right_speed();        
 
-        ros_driver_send_odom_speed( enc_left, enc_right );
+        // ros_driver_send_odom_speed( enc_left, enc_right );
 
         odometry_pose_t *pose = odometry_get_pose();
         ros_driver_send_pose( pose );

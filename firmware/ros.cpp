@@ -38,13 +38,13 @@ void cmd_vel_cb( const geometry_msgs::Twist &msg )
 
     if ( lin )
     {
-        motors_set_right_power( 50 * lin );
-        motors_set_left_power( 50 * lin );
+        motors_set_right_power( 20 * lin );
+        motors_set_left_power( 20 * lin );
     }
     else if ( rot )
     {
-        motors_set_right_power( 50 * rot );
-        motors_set_left_power( -50 * rot );
+        motors_set_right_power( 20 * rot );
+        motors_set_left_power( -20 * rot );
     }
     else
     {

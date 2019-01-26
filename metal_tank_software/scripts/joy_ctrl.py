@@ -63,68 +63,20 @@ def show_clicked(msg):
     for i in range(len(msg.axes)):
         print('\t%s: %.2f' % (axes_names[i], msg.axes[i]))
 
+speed = 0
+turn = 0
 
 def joy_cb(msg):
-    global steer_value, speed_value, current_mode
+    global speed, turn
 
     if debug_enabled:
         show_clicked(msg)
         
-    # print(msg)
+    speed = msg.axes[5]
+    turn = msg.axes[4]
 
-
-    if msg.buttons[0]:
-        current_mode = 0
-        mode_pub.publish( current_mode ) 
-
-    if msg.buttons[1]:
-        pass
-
-    # Press yellow then red
-
-    if msg.buttons[6] and msg.buttons[7]:
-        if msg.buttons[3]:
-            # Prepare
-            current_mode = 1
-            mode_pub.publish( current_mode ) 
-
-        if msg.buttons[2]:
-            # Start
-            current_mode = 2
-            mode_pub.publish( current_mode )
-
-
-    if msg.buttons[4]:
-        steer_value = 0
-
-    # if msg.axes[0] != 0:
-    #     steer_value += -10 * msg.axes[0]
-
-    steer_value = msg.axes[0] * 80
-    speed_value = msg.axes[3] * 100
-
-    speed_limit = 100
-    steer_limit = 80
-
-    if speed_value < 0:
-        speed_value = speed_value * 0.3
-
-    speed_value = np.clip( speed_value, -30, speed_limit ) 
-    steer_value = np.clip( steer_value, -steer_limit, steer_limit ) 
-
-    # speed_pub.publish( msg.linear.x * 100 )
-    # steer_pub.publish( msg.angular.z * -150 )
-
-    # cmd = [msg.linear.x * 100, msg.angular.z * -150]
-
-    # print('Cmd: ', [speed_value, steer_value])
-
-
-rospy.Subscriber('joy', Joy, joy_cb, queue_size = 1)
-
-speed_pub = rospy.Publisher('quadro/speed_perc', Int8, queue_size=1)
-steer_pub = rospy.Publisher('quadro/steer_perc', Int8, queue_size=1)
-mode_pub = rospy.Publisher('quadro/mode_status', UInt8, queue_size=1)
+rospy.Subscriber('joy', Joy, joy_cb, queue_size = 10)
+pub = rospy.Publisher('cmd_vel', Twist, queue_size = 10)
 
 if __name__ == '__main__':
 
@@ -132,7 +84,15 @@ if __name__ == '__main__':
 
     while not rospy.is_shutdown():
 
-        steer_pub.publish( steer_value )
-        speed_pub.publish( speed_value )
+        vel_msg = Twist()
+        
+        vel_msg.linear.x = speed
+        vel_msg.linear.y = 0
+        vel_msg.linear.z = 0
+        vel_msg.angular.x = 0
+        vel_msg.angular.y = 0
+        vel_msg.angular.z = turn
+
+        pub.publish( vel_msg )
 
         sleep( 100 / 1000. )

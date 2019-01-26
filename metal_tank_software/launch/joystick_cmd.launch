@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node pkg="joy" type="joy_node" name="joystick_driver">
+  </node>
+
+  <node name="joy_cmd"  pkg="metal_tank_software"  type="joy_ctl.py" output="screen" respawn="false" >
+  	<ramep from="cmd_vel" to="robot/cmd_vel"
+  </node>
+</launch>
